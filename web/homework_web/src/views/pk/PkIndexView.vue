@@ -1,15 +1,18 @@
 <template>
-    <ContenFiled>
+    <PlayGround />
+    <!-- <ContenFiled>
         pk页面
-    </ContenFiled>
+    </ContenFiled> -->
 </template>
 
 <script>
-import ContenFiled from '../../components/ContentFiled.vue'
+import PlayGround from '../../components/PlayGround.vue';
+// import ContenFiled from '../../components/ContentFiled.vue'
 export default{
     components:{
-    ContenFiled
-}
+        //ContenFiled,
+        PlayGround,
+    }
 }
 </script>
 
