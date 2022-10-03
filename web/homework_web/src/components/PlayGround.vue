@@ -22,7 +22,7 @@
 div.playground{
     width:60vw;
     height:70vh;
-    background: rgb(196, 251, 255);
+    background: rgb(196, 251, 255); 
     margin:40px auto;
 }
 </style>
