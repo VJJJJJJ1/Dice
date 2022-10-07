@@ -36,6 +36,20 @@ export default {
         let password = ref('');
         let error_message = ref('');
 
+        const jwt_token = localStorage.getItem("jwt_token");
+        if(jwt_token){
+            // 利用commit来调用store->user.js->mutations的函数
+            store.commit("updateToken", jwt_token);
+            store.dispatch("getinfo",{
+                success(){
+                    router.push({name: "home"});
+                },
+                error(){
+
+                },
+            })
+        }
+
         const login = () => {
             error_message.value = "";
             store.dispatch("login", {

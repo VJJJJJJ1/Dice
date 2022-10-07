@@ -7,6 +7,8 @@ import RankListView from '../views/ranklist/RankListView'
 import UserAccountLoginView from '../views/user/account/UserAccountLoginView'
 import UserAccountRegisterView from '../views/user/account/UserAccountRegisterView'
 import HomeIndexView from '../views/home/HomeIndexView'
+import store from '../store/index'
+
 
 const routes = [
   {
@@ -14,43 +16,70 @@ const routes = [
     path:"/",
     name:"home",
     // redirect:"/pk/",
-    component: HomeIndexView
+    component: HomeIndexView,
+    meta: {
+       needAuth : true, 
+    }
   },
   {
     path:"/pk/",
     name:"pk_index",
-    component:PkIndexView
+    component:PkIndexView,
+    meta: {
+      needAuth : true, 
+   }
   },
   {
     path:"/record",
     name:"record_index",
-    component:RecordIndexView
+    component:RecordIndexView,
+    meta: {
+      needAuth : true, 
+   }
+  },
+  {
+    path:"/ranklist/",
+    name:"rank_list",
+    component:RankListView,
+    meta: {
+      needAuth : true, 
+   }
   },
   {
     path:"/userbot/",
     name:"user_bot_index",
-    component:UserBotIndexView
+    component:UserBotIndexView,
+    meta: {
+      needAuth : true, 
+   }
   },
   {
     path: "/user/account/login/",
     name: "user_account_login",
     component: UserAccountLoginView,
+    meta: {
+      // Login模块不需要授权
+      needAuth : false, 
+   }
   },
   {
     path: "/user/account/register/",
     name: "user_account_register",
     component: UserAccountRegisterView,
+    meta: {
+      // register模块不需要授权
+      needAuth : false, 
+   }
   },
 
   {
+    // 404模块不需要授权
     path:"/404/",
     name:"404",
-    component:NotFoundView
-  },
-  {
-    path:"/ranklist/",
-    name:"rank_list",
-    component:RankListView
+    component:NotFoundView,
+    meta: {
+      needAuth : false, 
+   }
   },
   {
     // 当输入不合法字符，重定向到404
@@ -63,6 +92,18 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+
+// 在router进入其他页面之前，会执行beforeEach函数，用于授权前端页面，强制用户登录
+router.beforeEach((to, from, next) =>{
+  // 需要授权但未登录，跳转到login页面
+  if(to.meta.needAuth && !store.state.user.is_login){
+    next({name: "user_account_login"});
+  }
+  else{
+    next();
+  }
 })
 
 export default router
