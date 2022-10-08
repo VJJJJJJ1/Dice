@@ -1,6 +1,7 @@
 <template>
     <div class="container">
         <div class="row">
+            <!-- 放置头像 -->
             <div class="col-3">
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-body">
@@ -8,6 +9,7 @@
                     </div>
                 </div>
             </div>
+            <!-- 放置表格 -->
             <div class="col-9">
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
@@ -35,6 +37,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="add-bot-code" class="form-label">代码</label>
+                                        <!-- VAceEditor组件实现代码编辑器 -->
                                         <VAceEditor
                                             v-model:value="botadd.content"
                                             @init="editorInit"
@@ -144,6 +147,8 @@ export default {
             error_message: "",
         });
 
+
+        // 向后端发起请求，得到最新的bot信息（即更新bot）
         const refresh_bots = () => {
             $.ajax({
                 url: "http://127.0.0.1:3001/user/bot/getlist/",
@@ -173,6 +178,7 @@ export default {
                     Authorization: "Bearer " + store.state.user.token,
                 },
                 success(resp) {
+                    // 若添加成功，后端会把error_message设置成success
                     if (resp.error_message === "success") {
                         botadd.title = "";
                         botadd.description = "";

@@ -36,7 +36,7 @@ export default{
     methods:{
         RandomInt(){
             for(let i = 0; i < 1000; i ++){
-                let k = parseInt(Math.random() * 6);
+                let k = parseInt(Math.random() * 7);
                 if(k !== 0){
                     alert("你转出了：" + k);
                     break;
@@ -63,7 +63,7 @@ div.gamemap{
   <div class="row">
     <div class="col-5">
       <div class="Button_Group">
-        <!-- <button v-for="a of MapA" :key="a.idx" :value="a.num" :id = a.id @click="putNum(0,a.idx)">{{a.num}}</button> -->
+
         <button id = "A0" @click="putNum(0, MapA[0].idx)">{{MapA[0].num}}</button>
         <button id = "A1" @click="putNum(0, MapA[1].idx)">{{MapA[1].num}}</button>
         <button id = "A2" @click="putNum(0, MapA[2].idx)">{{MapA[2].num}}</button>
@@ -81,16 +81,25 @@ div.gamemap{
       <div class="dice">
         <button @click="Roll_Dice">{{dice_num}}</button>
       </div>
-      <!-- <div class="badge bg-primary text-wrap fs-6" style="width: 100%;margin: 0 auto;"> -->
       <div class="alert alert-danger " role="alert" align = "center"> 
         {{situation}}
       </div>
+
+      <div class="Model" align = "center">
+          <button @click="model">切换模式</button>
+      </div>
+
+      <div class="Model_msg">
+        <div class="alert alert-danger" role="alert" align = "center" > {{ model_msg }}</div>
+      </div>
+      
+      
+
     </div>
 
 
     <div class="col-5">
       <div class="Button_Group">
-        <!-- <button v-for="b in MapB" :key="b.idx" :value="b.num" @click="putNum(1,b.idx)">{{b.num}}</button> -->
         <button id = "B0" @click="putNum(1, MapB[0].idx)">{{MapB[0].num}}</button>
         <button id = "B1" @click="putNum(1, MapB[1].idx)">{{MapB[1].num}}</button>
         <button id = "B2" @click="putNum(1, MapB[2].idx)">{{MapB[2].num}}</button>
@@ -110,7 +119,6 @@ div.gamemap{
       <div class="Restart">
           <button @click="restart">再玩一把</button>
       </div>
-      
 
   </div>
 </template>
@@ -126,7 +134,22 @@ export default {
     let step;
     let situation;
     let has_roll = 0;
+    let model_msg;
+    let model_flag;  //0表示本地对战，1表示人机对战
   //   const store = useStore();
+
+  const model = () =>{
+    // console.log(model_msg);
+    // console.log(model_flag);
+    if(model_flag === 0){
+      model_flag = 1;
+      model_msg.value = '现在是人机对战';
+    }
+    else{
+      model_flag = 0;
+      model_msg.value = '现在是本地对战';
+    }
+  }
 
   const see_score = () =>{
       if(!judge_full()){
@@ -146,9 +169,10 @@ export default {
       dice_num = ref("投掷");
       step = ref(0);
       situation = ref('Round A');
+      model_msg = ref('现在是本地对战');
+      model_flag = 0;
     }
     init();
-
 
     const Roll_Dice = () => {
       if(judge_full()){
@@ -156,9 +180,11 @@ export default {
         return ;
       }
 
+
+      // 生成随机数
       if(has_roll === 0){
           for(let i = 0;i < 10000; i ++){
-              let k = parseInt(Math.random(0, 1) * 6);
+              let k = parseInt(Math.random(0, 1) * 7);
               if(k !== 0){
                   dice_num.value = k;
                   has_roll = 1;
@@ -195,7 +221,9 @@ export default {
           }
           else msg = '只能在空区域置放骰子';
       } 
-      else if (step.value === 1 && f === 0) msg = "请操作右侧侧九宫格";
+      else if (step.value === 1 && f === 0){
+        msg = "请操作右侧侧九宫格";
+      }
       return msg;
     }
 
@@ -266,6 +294,32 @@ export default {
     }
 
 
+    const AiputNum = () =>{
+      for(let i = 0; i < 10000; i ++){
+        let randomPos = parseInt(Math.random(0, 1) * 9);
+        if(MapB.value[randomPos].num === 0){
+          MapB.value[randomPos].num = dice_num.value;
+          judge(1, randomPos, dice_num.value);
+
+          console.log("num" + dice_num.value);
+          console.log("pos" + randomPos);
+
+
+          dice_num.value = "投掷";
+          if(situation.value === 'Round A') situation.value = 'Round B';
+          else situation.value = 'Round A';
+          has_roll = 0;
+          step.value = 0;
+          if(judge_full()){
+              calculate_score();
+              return;
+          }
+          break;
+        }
+      }
+      
+    }
+
     const putNum = (f, idx) => {
       if (dice_num.value === '投掷') {
         alert('请先投掷骰子');
@@ -281,6 +335,21 @@ export default {
               calculate_score();
               return;
           }
+      }
+      if(model_flag === 1 && step.value === 1){
+        // for(let i = 0; i < 10000; i ++){
+        //   let k = parseInt(Math.random(0, 1) * 7);
+        //   if(k !== 0){
+        //     dice_num.value = k;
+        //     break;
+        //   } 
+        // }
+       setTimeout(() => {
+        Roll_Dice();
+       }, 500);
+        setTimeout(() => {
+          AiputNum();
+        }, 1000);
       }
     }
 
@@ -305,6 +374,9 @@ export default {
       Roll_Dice,
       see_score,
       restart,
+      model_msg,
+      model_flag,
+      model,
     }
   }
 }
@@ -315,9 +387,11 @@ button {
   width: 100px;
   height: 100px;
   
-  background: rgb(26, 204, 204);
+  background: #202938;
   border-radius: 50%;
   margin: 5px 5px 5px 5px;
+  color: white;
+  
 }
 div.Button_Group {
   width: 330px;
@@ -347,5 +421,8 @@ div.Restart{
   /* width: 20vw;
   height: 20vh;
   margin: -30vh auto; */
+}
+div.Model_msg{
+  margin-top: 15px;
 }
 </style>

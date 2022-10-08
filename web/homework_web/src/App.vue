@@ -68,7 +68,7 @@ setup() {
 
 <style>
 body{
-  background-image: url("@/assets/images/background.png");
+  background-image: url("@/assets/images/bg.png");
   background-size : cover; 
 }
 </style>
