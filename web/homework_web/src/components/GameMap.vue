@@ -152,10 +152,6 @@ export default {
   }
 
   const see_score = () =>{
-      if(!judge_full()){
-          alert("游戏还没结束！");
-          return  ;
-      }
       calculate_score();
       
   }
@@ -175,7 +171,7 @@ export default {
     init();
 
     const Roll_Dice = () => {
-      if(judge_full()){
+      if(is_full()){
         alert('对局已结束！');
         return ;
       }
@@ -204,28 +200,29 @@ export default {
         if (MapA.value[idx].num === 0) {
           has_roll = 0;
           MapA.value[idx].num = number;
-          judge(f, idx, number);
+          Judge(f, idx, number);
           step.value = 1;
           return msg;
         }
          else msg = '只能在空区域置放骰子';
       } 
-      else if (step.value === 0 && f === 1) msg = "请操作左侧九宫格";
+      else if (step.value === 0 && f === 1) msg = "放左边！";
       
       if (step.value === 1 && f === 1) {
           if (MapB.value[idx].num === 0) {
               has_roll = 0;
               MapB.value[idx].num = number;
-              judge(f, idx, number);
+              Judge(f, idx, number);
               step.value = 0;
           }
           else msg = '只能在空区域置放骰子';
       } 
       else if (step.value === 1 && f === 0){
-        msg = "请操作右侧侧九宫格";
+        msg = "放右边！";
       }
       return msg;
     }
+
 
 
 
@@ -235,6 +232,7 @@ export default {
       let winner = '';
       // 计算A的得分
       for (let i = 0; i < 3; i++) {
+        //访问各列的每个元素
         let a = MapA.value[i * 3].num;
         let b = MapA.value[i * 3 + 1].num;
         let c = MapA.value[i * 3 + 2].num;
@@ -246,6 +244,7 @@ export default {
       }
       // 计算B的得分
       for (let i = 0; i < 3; i++) {
+        //访问各列的每个元素
         let a = MapB.value[i * 3].num;
         let b = MapB.value[i * 3 + 1].num;
         let c = MapB.value[i * 3 + 2].num;
@@ -254,6 +253,10 @@ export default {
         else if (a === c) ScoreB += a * 4 + b;
         else if (b === c) ScoreB += b * 4 + a;
         else ScoreB += (a + b + c);
+      }
+      if(!is_full()){
+        alert("A目前得分是："+ScoreA + "\nB目前得分是："+ScoreB + '\n游戏还没结束，加油！');
+        return ;
       }
       if (ScoreA > ScoreB) winner = 'A';
       else if (ScoreA < ScoreB) winner = 'B';
@@ -270,17 +273,17 @@ export default {
       // store.commit("updateLoser", loser);
     }
 
-    const judge_full = () => {
-      let arr = [];
+    const is_full = () => {
+      let tmp = [];
       //判断上一回合
-      if (step.value === 1) arr = MapA.value;
-      else arr = MapB.value;
+      if (step.value === 1) tmp = MapA.value;
+      else tmp = MapB.value;
       let cnt = 0;
-      for (let i = 0; i < arr.length; i++) if (arr[i].num != 0) cnt++;
+      for (let i = 0; i < tmp.length; i++) if (tmp[i].num != 0) cnt++;
       if (cnt === 9)  return true;
       return false;
     }
-    const judge = (f, idx, num) => {
+    const Judge = (f, idx, num) => {
       if (f === 0) {
         for (let i = parseInt(idx / 3) * 3; i < parseInt(idx / 3) * 3 + 3; i++) {
           if (MapB.value[i].num === num) MapB.value[i].num = 0;
@@ -295,14 +298,15 @@ export default {
 
 
     const AiputNum = () =>{
-      for(let i = 0; i < 10000; i ++){
-        let randomPos = parseInt(Math.random(0, 1) * 9);
-        if(MapB.value[randomPos].num === 0){
-          MapB.value[randomPos].num = dice_num.value;
-          judge(1, randomPos, dice_num.value);
+        let Pos = AIgetpos(dice_num.value);
+        console.log("AI"+Pos);
+
+        if(MapB.value[Pos].num === 0){
+          MapB.value[Pos].num = dice_num.value;
+          Judge(1, Pos, dice_num.value);
 
           console.log("num" + dice_num.value);
-          console.log("pos" + randomPos);
+          console.log("pos" + Pos);
 
 
           dice_num.value = "投掷";
@@ -310,15 +314,103 @@ export default {
           else situation.value = 'Round A';
           has_roll = 0;
           step.value = 0;
-          if(judge_full()){
+          if(is_full()){
               calculate_score();
               return;
           }
-          break;
         }
-      }
       
     }
+
+
+    // const calculate_AIscore = (Maparr) =>{
+    //   let calculate_score_Num = 0;
+    //   for (let i = 0; i < 3; i++) {
+    //     let a = Maparr[i * 3].num;
+    //     let b = Maparr[i * 3 + 1].num;
+    //     let c = Maparr[i * 3 + 2].num;
+    //     if (a === b && b === c) calculate_score_Num += a * 9;
+    //     else if (a === b) calculate_score_Num += a * 4 + c;
+    //     else if (a === c) calculate_score_Num += a * 4 + b;
+    //     else if (b === c) calculate_score_Num += b * 4 + a;
+    //     else calculate_score_Num += (a + b + c);
+    //   }
+    //   return calculate_score_Num;
+    // }
+
+    const AIgetpos = (randomNum) =>{
+      
+      // let AIscore = 0;
+      let pos = -1;
+      // let MaxScore = -1;
+      let MapAarr = [];
+      let MapBarr = [];
+      let k = 0;
+      let cntB = 0;  //计算B的剩余空位
+      MapAarr = MapA.value;
+      MapBarr = MapB.value;
+      
+      for(let i = 0; i < 9; i ++){
+        if(MapB.value[i].num === 0) cntB ++;
+      }
+
+      //消除3以上的
+      for(let i = 0; i < 9; i ++){
+        if(MapAarr[i].num >= 3 && randomNum === MapAarr[i].num){
+          let j = parseInt(i / 3)
+          if(MapBarr[j * 3].num === 0){
+            pos = j * 3;
+            return pos;
+          }
+          if(MapBarr[j * 3 + 1].num === 0){
+            pos = j * 3 + 1;
+            return pos;
+          }
+          if(MapBarr[j * 3 + 2].num === 0){
+            pos = j * 3 + 2;
+            return pos;
+          }
+        }
+      }
+
+      for(let i = 0; i < 100000; i ++){
+        k = parseInt(Math.random(0, 1) * 9);
+        if(MapB.value[k].num === 0){
+          pos = k;
+          if(cntB === 1) return pos;
+          let row = parseInt(k / 3);
+          if((MapB.value[row].num === 1 && MapB.value[row + 1].num === 1) || (MapB.value[row].num === 1 && MapB.value[row + 2].num === 1) || (MapB.value[row + 1].num === 1 && MapB.value[row + 2].num === 1)){
+            continue;
+          }
+          // 若出现对方一行里有2-3个大于等于3且我方同行只有一个空
+          // let rowCntB = 0; //计算B这一行有多少空位
+          // for(let j = 0; j < 3; j ++){
+          //   if(MapB.value[row * 3 + j].num === 0) rowCntB ++;
+          // }
+          let curNum = MapA.value[row * 3];
+          if(curNum >= 4 && (MapA.value[row * 3 + 1] === curNum || MapA.value[row * 3 + 2] === curNum)){
+            continue;
+          }
+          if(MapA.value[row * 3 + 1] === MapA.value[row * 3 + 2] && MapA.value[row * 3 + 2] >= 4){
+            continue;
+          }
+
+          return pos;
+        }
+      }
+
+
+      // for(let i = 0; i < 9; i ++){
+      //   if(MapB.value[i].num === 0){
+      //     MapBarr[i].num = randomNum;
+      //     AIscore = calculate_AIscore(MapBarr);
+      //     if(AIscore > MaxScore) pos = i;
+      //     MapBarr[i].num = 0;   //恢复现场
+      //   }
+      // }
+      // return pos;
+    }
+
 
     const putNum = (f, idx) => {
       if (dice_num.value === '投掷') {
@@ -331,7 +423,7 @@ export default {
           dice_num.value = '投掷';
           if(situation.value === 'Round A') situation.value = 'Round B';
           else situation.value = 'Round A';
-          if(judge_full()){
+          if(is_full()){
               calculate_score();
               return;
           }
@@ -377,6 +469,12 @@ export default {
       model_msg,
       model_flag,
       model,
+      AIgetpos,
+      // pos,
+      // calculate_AIscore_Num,
+      // calculate_score,
+
+
     }
   }
 }
@@ -387,7 +485,14 @@ button {
   width: 100px;
   height: 100px;
   
-  background: #202938;
+  background: #eb94d0;
+        /* 创建渐变 */
+        background-image: -webkit-linear-gradient(top, #D2D2D0, #123245);
+        background-image: -moz-linear-gradient(top, #D2D2D0, #123245);
+        background-image: -ms-linear-gradient(top, #D2D2D0, #123245);
+        background-image: -o-linear-gradient(top, #D2D2D0, #123245);
+        background-image: linear-gradient(to bottom, #D2D2D0, #123245);
+  /* background: #202938; */
   border-radius: 50%;
   margin: 5px 5px 5px 5px;
   color: white;
@@ -397,7 +502,8 @@ div.Button_Group {
   width: 330px;
   height: 330px;
   margin: 20vh auto;
-  font-size:30px;
+  font-size:40px;
+  font-weight: bolder;
 }
 div.dice {
   width: 100px;
@@ -425,4 +531,40 @@ div.Restart{
 div.Model_msg{
   margin-top: 15px;
 }
+
+div.button{width: 70px;
+    background: #eb94d0;
+        /* 创建渐变 */
+        background-image: -webkit-linear-gradient(top, #d595b5, #123245);
+        background-image: -moz-linear-gradient(top, #d595b5, #123245);
+        background-image: -ms-linear-gradient(top, #d595b5, #123245);
+        background-image: -o-linear-gradient(top, #d595b5, #123245);
+        background-image: linear-gradient(to bottom, #d595b5, #123245);
+        /* 给按钮添加圆角 */
+        -webkit-border-radius: 50%;
+        -moz-border-radius: 50%;
+        border-radius: 50%; 
+        border: #fafafa;
+        text-shadow: 3px 2px 1px #9daef5;
+        -webkit-box-shadow: 6px 5px 24px #666666;
+        -moz-box-shadow: 6px 5px 24px #666666;
+        box-shadow: 6px 5px 24px #666666;
+        font-family: Arial;
+        color: #fafafa;
+        font-size: 27px;
+        padding: 19px;
+        text-decoration: none;
+        margin: 5px 5px 5px 5px;
+      }
+      /* 悬停样式 */
+      button:hover {
+        background: #2079b0;
+        background-image: -webkit-linear-gradient(top, #2079b0, #eb94d0);
+        background-image: -moz-linear-gradient(top, #2079b0, #eb94d0);
+        background-image: -ms-linear-gradient(top, #2079b0, #eb94d0);
+        background-image: -o-linear-gradient(top, #2079b0, #eb94d0);
+        background-image: linear-gradient(to bottom, #2079b0, #eb94d0);
+        text-decoration: none;
+}
+
 </style>
