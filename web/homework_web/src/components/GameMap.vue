@@ -1,64 +1,3 @@
-<!-- <template>
-    <div>
-        <div class="d-grid gap-2 col-3 mx-auto">
-            <button @click="RandomInt" type="button" class="btn btn-secondary btn-lg">投掷</button>
-        </div>
-        <div ref = "parent" class = "gamemap">  
-        <canvas ref = "canvas"></canvas>
-        </div>
-        
-    </div>
-    
-</template>
-
-
-<script>
-import {  GameMap  } from '@/assets/scripts/GameMap';
-import {  ref, onMounted  } from 'vue'
-
-
-
-export default{
-    setup(){
-        let parent = ref(null);
-        let canvas = ref(null);
-        
-        //组件挂载完后需要执行以下操作
-        onMounted(() =>{ 
-            // 就是ctx和parent
-            new GameMap(canvas.value.getContext('2d'), parent.value)
-        });
-        return{
-            parent,
-            canvas
-        }
-    },
-    methods:{
-        RandomInt(){
-            for(let i = 0; i < 1000; i ++){
-                let k = parseInt(Math.random() * 7);
-                if(k !== 0){
-                    alert("你转出了：" + k);
-                    break;
-                }
-            }            
-        }
-    }
-
-}
-</script>
-
-<style scoped>
-div.gamemap{
-    /* width: 200%;
-    height: 200%; */
-    width:60vw;
-    height:70vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-</style> -->
 <template>
   <div class="row">
     <div class="col-5">
@@ -380,19 +319,19 @@ export default {
           if(cntB === 1) return pos;
           let row = parseInt(k / 3);
           if((MapB.value[row].num === 1 && MapB.value[row + 1].num === 1) || (MapB.value[row].num === 1 && MapB.value[row + 2].num === 1) || (MapB.value[row + 1].num === 1 && MapB.value[row + 2].num === 1)){
-            continue;
+            if(rowCntB === 1) continue;
           }
           // 若出现对方一行里有2-3个大于等于3且我方同行只有一个空
-          // let rowCntB = 0; //计算B这一行有多少空位
-          // for(let j = 0; j < 3; j ++){
-          //   if(MapB.value[row * 3 + j].num === 0) rowCntB ++;
-          // }
+          let rowCntB = 0; //计算B这一行有多少空位
+          for(let j = 0; j < 3; j ++){
+            if(MapB.value[row * 3 + j].num === 0) rowCntB ++;
+          }
           let curNum = MapA.value[row * 3];
           if(curNum >= 4 && (MapA.value[row * 3 + 1] === curNum || MapA.value[row * 3 + 2] === curNum)){
-            continue;
+            if(rowCntB === 1) continue;
           }
           if(MapA.value[row * 3 + 1] === MapA.value[row * 3 + 2] && MapA.value[row * 3 + 2] >= 4){
-            continue;
+            if(rowCntB === 1) continue;
           }
 
           return pos;
